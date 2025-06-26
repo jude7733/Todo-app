@@ -15,7 +15,7 @@ export default function Navbar() {
         </SheetTrigger>
         <SheetContent side="left">
           <ListTodo className="h-6 w-6" />
-          <span className="sr-only">Acme Inc</span>
+          <span className="sr-only">To-Do List</span>
         </SheetContent>
       </Sheet>
       <ListTodo className="h-6 w-6" />
