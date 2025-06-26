@@ -9,6 +9,7 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLab
 import Cookies from 'js-cookie'
 import { v4 as uuidv4 } from 'uuid';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from './ui/accordion'
+import { Separator } from './ui/separator'
 
 export type TodoTasks = {
   id: string
@@ -24,6 +25,8 @@ export default function Todo() {
 
   const [deletedTasks, setDeletedTasks] = useState<TodoTasks[]>([]);
 
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     const tasksCookie = Cookies.get('tasks')
     const deletedTasksCookie = Cookies.get('deletedTasks')
@@ -33,12 +36,15 @@ export default function Todo() {
     if (deletedTasksCookie) {
       setDeletedTasks(JSON.parse(deletedTasksCookie))
     }
+    setLoading(false);
   }, [])
 
   useEffect(() => {
-    Cookies.set('tasks', JSON.stringify(tasks), { path: '/' })
-    Cookies.set('deletedTasks', JSON.stringify(deletedTasks), { expires: 7, path: '/' }) // Store deleted tasks for 7 days
-  }, [tasks, deletedTasks])
+    if (!loading) {
+      Cookies.set('tasks', JSON.stringify(tasks), { expires: 7 })
+      Cookies.set('deletedTasks', JSON.stringify(deletedTasks), { expires: 7 })
+    }
+  }, [tasks, deletedTasks, loading])
 
   const generateId = () => uuidv4();
 
@@ -95,6 +101,10 @@ export default function Todo() {
         task.id === taskId ? { ...task, priority: priority } : task
       )
     )
+  }
+
+  if (loading) {
+    return <div className="text-center py-10">Loading...</div>
   }
 
   return (
@@ -184,10 +194,11 @@ export default function Todo() {
             type="text"
             name="description"
           />
-          <Button type="submit">Add</Button>
+          <Button type="submit" variant="outline" className='border-blue-500 border'>Add</Button>
         </form>
       </CardFooter>
-      <CardContent className="flex flex-col gap-4 mt-10">
+      <Separator className="my-4 w-2" />
+      <CardContent className="flex flex-col gap-4">
         <Accordion type="single" collapsible>
           <AccordionItem value="item-1">
             <AccordionTrigger>
@@ -201,7 +212,7 @@ export default function Todo() {
               )}
               {deletedTasks.map((task) => (
                 <div
-                  className="flex items-center justify-between gap-4 shadow-sm rounded-xl p-2"
+                  className="flex items-center border border-b-blue-200 justify-between gap-4 shadow-sm rounded-xl p-2"
                   key={task.id}
                 >
                   <div className='space-x-4 px-8'>
