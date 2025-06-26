@@ -108,7 +108,7 @@ export default function Todo() {
   }
 
   return (
-    <Card className="w-full max-w-5xl mx-auto">
+    <Card className="w-full max-w-5xl mx-auto bg-card/50 backdrop-blur-2xl shadow-sm shadow-primary">
       <CardHeader>
         <CardTitle className="text-2xl">To-Do List</CardTitle>
         <CardDescription>Your flexible Todo list</CardDescription>
