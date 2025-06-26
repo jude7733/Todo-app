@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/components/ui/button"
@@ -6,7 +6,9 @@ import { Input } from "@/components/ui/input"
 import { StarIcon, TrashIcon } from 'lucide-react'
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuItem } from './ui/dropdown-menu'
 
+import Cookies from 'js-cookie'
 import { v4 as uuidv4 } from 'uuid';
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from './ui/accordion'
 
 export type TodoTasks = {
   id: string
@@ -18,24 +20,25 @@ export type TodoTasks = {
 
 export default function Todo() {
 
-  const [tasks, setTasks] = useState<TodoTasks[]>([
-    {
-      id: '1',
-      title: 'Learn how to use Shadcn',
-      description: 'Understand the components and utilities provided by Shadcn',
-      completed: false,
-      priority: 'medium'
-    },
-    {
-      id: '2',
-      title: 'Walk the dog',
-      description: 'Take the dog for a walk in the park',
-      completed: true,
-      priority: 'low'
-    },
-  ])
+  const [tasks, setTasks] = useState<TodoTasks[]>([])
 
-  const [newTask, setNewTask] = useState<TodoTasks>()
+  const [deletedTasks, setDeletedTasks] = useState<TodoTasks[]>([]);
+
+  useEffect(() => {
+    const tasksCookie = Cookies.get('tasks')
+    const deletedTasksCookie = Cookies.get('deletedTasks')
+    if (tasksCookie) {
+      setTasks(JSON.parse(tasksCookie))
+    }
+    if (deletedTasksCookie) {
+      setDeletedTasks(JSON.parse(deletedTasksCookie))
+    }
+  }, [])
+
+  useEffect(() => {
+    Cookies.set('tasks', JSON.stringify(tasks), { path: '/' })
+    Cookies.set('deletedTasks', JSON.stringify(deletedTasks), { expires: 7, path: '/' }) // Store deleted tasks for 7 days
+  }, [tasks, deletedTasks])
 
   const generateId = () => uuidv4();
 
@@ -76,10 +79,15 @@ export default function Todo() {
   }
 
   const deleteTask = (taskId: string) => {
+    setDeletedTasks((prevDeletedTasks) => [
+      ...prevDeletedTasks,
+      tasks.find(task => task.id === taskId) as TodoTasks
+    ]);
     setTasks((prevTasks) =>
       prevTasks.filter((task) => task.id !== taskId)
-    )
+    );
   }
+
 
   const handleSetPriority = (taskId: string, priority: 'low' | 'medium' | 'high') => {
     setTasks((prevTasks) =>
@@ -90,12 +98,18 @@ export default function Todo() {
   }
 
   return (
-    <Card key="1" className="w-full max-w-5xl mx-auto">
+    <Card className="w-full max-w-5xl mx-auto">
       <CardHeader>
         <CardTitle className="text-2xl">To-Do List</CardTitle>
-        <CardDescription>Add new tasks to your to-do list</CardDescription>
+        <CardDescription>Your flexible Todo list</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4 mt-10">
+        <h2 className='text-lg italic'>Ongoing</h2>
+        {tasks.length === 0 && (
+          <div>
+            <span className="text-gray-500 dark:text-gray-400">No tasks available, start adding them</span>
+          </div>
+        )}
         {tasks.map((task) => (
           <div
             className={`flex items-center justify-between gap-4 shadow-sm rounded-xl p-2 ${task.priority === 'high'
@@ -106,7 +120,7 @@ export default function Todo() {
               }`}
             key={task.id}
           >
-            <div className='space-x-4'>
+            <div className='space-x-4 flex items-center'>
               <Checkbox
                 id={`todo${task.id}`}
                 checked={task.completed}
@@ -156,7 +170,7 @@ export default function Todo() {
           </div>
         ))}
       </CardContent>
-      <CardFooter className="gap-4">
+      <CardFooter className="gap-4 mt-10">
         <form className="flex w-full gap-2" onSubmit={handleSubmit}>
           <Input
             className="rounded-none border-0 border-gray-200 dark:border-gray-800 shadow-none flex-1"
@@ -173,6 +187,44 @@ export default function Todo() {
           <Button type="submit">Add</Button>
         </form>
       </CardFooter>
+      <CardContent className="flex flex-col gap-4 mt-10">
+        <Accordion type="single" collapsible>
+          <AccordionItem value="item-1">
+            <AccordionTrigger>
+              <h2 className='text-lg italic'>Deleted</h2>
+            </AccordionTrigger>
+            <AccordionContent>
+              {deletedTasks.length === 0 && (
+                <div>
+                  <span className="text-gray-500 dark:text-gray-400">Empty</span>
+                </div>
+              )}
+              {deletedTasks.map((task) => (
+                <div
+                  className="flex items-center justify-between gap-4 shadow-sm rounded-xl p-2"
+                  key={task.id}
+                >
+                  <div className='space-x-4 px-8'>
+                    <label
+                      className="peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      htmlFor={`todo${task.id}`}
+                    >
+                      {task.title}
+                    </label>
+                  </div>
+                  <div className='flex justify-between items-center gap-10'>
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                      {task.description}
+                    </span>
+                  </div>
+
+                </div>
+              ))}
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      </CardContent>
     </Card>
   )
 }
+
