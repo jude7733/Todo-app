@@ -98,58 +98,61 @@ export default function Todo() {
       <CardContent className="flex flex-col gap-4 mt-10">
         {tasks.map((task) => (
           <div
-            className={`flex items-center justify-between gap-4 ${task.priority === 'high'
-              ? 'text-red-400'
+            className={`flex items-center justify-between gap-4 shadow-sm rounded-xl p-2 ${task.priority === 'high'
+              ? 'text-red-400 shadow-red-200'
               : task.priority === 'medium'
-                ? 'text-yellow-400'
-                : 'text-green-400'
+                ? 'text-yellow-400 shadow-yellow-200'
+                : 'text-green-400 shadow-green-200'
               }`}
             key={task.id}
           >
-            <Checkbox
-              className="peer-absolute left-0 translate-x-2.5"
-              id={`todo${task.id}`}
-              checked={task.completed}
-              onCheckedChange={(checked: boolean) => onCheckedChange(task.id, checked)}
-            />
-            <div className='flex justify-start gap-10'>
+            <div className='space-x-4'>
+              <Checkbox
+                id={`todo${task.id}`}
+                checked={task.completed}
+                onCheckedChange={(checked: boolean) => onCheckedChange(task.id, checked)}
+              />
+
               <label
                 className="peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                 htmlFor={`todo${task.id}`}
               >
                 {task.title}
               </label>
+            </div>
+            <div className='flex justify-between items-center gap-10'>
               <span className="text-sm text-gray-500 dark:text-gray-400">
                 {task.description}
               </span>
+              <div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="icon">
+                      <span className="sr-only">Set priority</span>
+                      <StarIcon className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuLabel>Set Priority</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => handleSetPriority(task.id, 'high')}>
+                      <span className="text-red-600">High</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleSetPriority(task.id, 'medium')}>
+                      <span className="text-yellow-600">Medium</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleSetPriority(task.id, 'low')}>
+                      <span className="text-green-600">Low</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <Button className="ml-auto h-8 w-8" size="icon" variant="destructive" onClick={() => deleteTask(task.id)}>
+                  <TrashIcon className="h-4 w-4" />
+                  <span className="sr-only">Delete task</span>
+                </Button>
+              </div>
             </div>
-            <div>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="icon">
-                    <span className="sr-only">Set priority</span>
-                    <StarIcon className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuLabel>Set Priority</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => handleSetPriority(task.id, 'high')}>
-                    <span className="text-red-600">High</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleSetPriority(task.id, 'medium')}>
-                    <span className="text-yellow-600">Medium</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleSetPriority(task.id, 'low')}>
-                    <span className="text-green-600">Low</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <Button className="ml-auto h-8 w-8" size="icon" variant="destructive" onClick={() => deleteTask(task.id)}>
-                <TrashIcon className="h-4 w-4" />
-                <span className="sr-only">Delete task</span>
-              </Button>
-            </div>
+
           </div>
         ))}
       </CardContent>
@@ -160,14 +163,12 @@ export default function Todo() {
             placeholder="Add a new task"
             type="text"
             name="title"
-            onChange={(e) => setNewTask({ ...newTask, title: e.target.value } as TodoTasks)}
           />
           <Input
             className="rounded-none border-0 border-gray-200 dark:border-gray-800 shadow-none flex-1"
             placeholder="Description (optional)"
             type="text"
             name="description"
-            onChange={(e) => setNewTask({ ...newTask, description: e.target.value } as TodoTasks)}
           />
           <Button type="submit">Add</Button>
         </form>
